@@ -26,7 +26,7 @@ DOCUMENTATION = """
             description: Endpoint of the Nautobot API
             required: True
             env:
-                - name: NAUTOBOT_API
+                - name: NAUTOBOT_URL
         validate_certs:
             description:
                 - Allows connection when SSL certificates are not valid. Set to C(false) when certificates are not trusted.
@@ -74,7 +74,6 @@ DOCUMENTATION = """
             env:
                 # in order of precedence
                 - name: NAUTOBOT_TOKEN
-                - name: NAUTOBOT_API_KEY
         plurals:
             description:
                 - If True, all host vars are contained inside single-element arrays for legacy compatibility with old versions of this plugin.
@@ -225,8 +224,8 @@ query_filters:
 plugin: networktocode.nautobot.inventory
 compose:
   foo: last_updated
-  bar: display_name
-  nested_variable: rack.display_name
+  bar: display
+  nested_variable: rack.display
 
 # You can use keyed_groups to group on properties of devices or VMs.
 # NOTE: It's only possible to key off direct items on the device/VM objects.

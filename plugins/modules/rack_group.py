@@ -63,7 +63,11 @@ options:
           - Required if I(state=present) and the rack does not exist yet
         required: false
         type: raw
+<<<<<<< HEAD
       parent:
+=======
+      parent_rack_group:
+>>>>>>> upstream/develop
         description:
           - The parent rack-group the rack group will be assigned to
         required: false
@@ -159,7 +163,11 @@ def main():
                     description=dict(required=False, type="str"),
                     site=dict(required=False, type="raw"),
                     region=dict(required=False, type="raw"),
+<<<<<<< HEAD
                     parent=dict(required=False, type="raw"),
+=======
+                    parent_rack_group=dict(required=False, type="raw"),
+>>>>>>> upstream/develop
                 ),
             ),
         )

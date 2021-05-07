@@ -98,7 +98,7 @@ Parameters
                                                                                                                                                             </td>
                                                     <td>
                                                                             <div>
-                                env:NAUTOBOT_API
+                                env:NAUTOBOT_URL
                                                                                             </div>
                                                                     </td>
                                                 <td>
@@ -764,7 +764,7 @@ Parameters
                                 env:NAUTOBOT_TOKEN
                                                                                             </div>
                                                     <div>
-                                env:NAUTOBOT_API_KEY
+                                env:NAUTOBOT_TOKEN
                                                                                             </div>
                                                                     </td>
                                                 <td>
@@ -888,8 +888,8 @@ Examples
     plugin: networktocode.nautobot.inventory
     compose:
       foo: last_updated
-      bar: display_name
-      nested_variable: rack.display_name
+      bar: display
+      nested_variable: rack.display
 
     # You can use keyed_groups to group on properties of devices or VMs.
     # NOTE: It's only possible to key off direct items on the device/VM objects.

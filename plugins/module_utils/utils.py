@@ -9,6 +9,7 @@ __metaclass__ = type
 import traceback
 import re
 import json
+import os
 
 from uuid import UUID
 from itertools import chain
@@ -23,7 +24,6 @@ from ansible.module_utils.urls import open_url
 PYNAUTOBOT_IMP_ERR = None
 try:
     import pynautobot
-    import requests
 
     HAS_PYNAUTOBOT = True
 except ImportError:
@@ -102,6 +102,7 @@ QUERY_TYPES = dict(
     manufacturer="slug",
     nat_inside="address",
     nat_outside="address",
+    parent_rack_group="slug",
     parent_region="slug",
     power_panel="name",
     power_port="name",
@@ -168,6 +169,7 @@ CONVERT_TO_ID = {
     "nat_inside": "ip_addresses",
     "nat_outside": "ip_addresses",
     "platform": "platforms",
+    "parent_rack_group": "rack_groups",
     "parent_region": "regions",
     "power_panel": "power_panels",
     "power_port": "power_ports",
@@ -299,6 +301,7 @@ ALLOWED_QUERY_PARAMS = {
     "manufacturer": set(["slug"]),
     "master": set(["name"]),
     "nat_inside": set(["vrf", "address"]),
+    "parent_rack_group": set(["slug"]),
     "parent_region": set(["slug"]),
     "platform": set(["slug"]),
     "power_feed": set(["name", "power_panel"]),
@@ -388,6 +391,7 @@ CONVERT_KEYS = {
     "circuit_type": "type",
     "cluster_type": "type",
     "cluster_group": "group",
+    "parent_rack_group": "parent",
     "parent_region": "parent",
     "prefix_role": "role",
     "rack_group": "group",
@@ -504,10 +508,8 @@ class NautobotModule(object):
 
     def _connect_api(self, url, token, ssl_verify):
         try:
-            session = requests.Session()
-            session.verify = ssl_verify
             nb = pynautobot.api(url, token=token)
-            nb.http_session = session
+            nb.http_session.verify = ssl_verify
             try:
                 self.version = nb.version
             except Exception:
@@ -737,9 +739,6 @@ class NautobotModule(object):
                     {"interface_id": module_data.get("assigned_object_id")}
                 )
 
-        elif parent == "virtual_chassis":
-            query_dict = {"q": self.module.params["data"].get("master")}
-
         elif parent == "rear_port" and self.endpoint == "front_ports":
             if isinstance(module_data.get("rear_port"), str):
                 rear_port = {
@@ -786,7 +785,7 @@ class NautobotModule(object):
         choices = [x for x in chain.from_iterable(endpoint_choices.values())]
 
         for item in choices:
-            if item["display_name"].lower() == search.lower():
+            if item["display"].lower() == search.lower():
                 return item["value"]
             elif item["value"] == search.lower():
                 return item["value"]
@@ -1301,3 +1300,30 @@ class NautobotAnsibleModule(AnsibleModule):
             terms = [terms]
 
         return len(set(terms).intersection(module_parameters))
+
+
+class NautobotApiBase:
+    def __init__(self, **kwargs):
+        self.url = kwargs.get("url") or os.getenv("NAUTOBOT_URL")
+        self.token = kwargs.get("token") or os.getenv("NAUTOBOT_TOKEN")
+        self.ssl_verify = kwargs.get("validate_certs", True)
+
+        # Setup the API client calls
+        self.api = pynautobot.api(url=self.url, token=self.token)
+        self.api.http_session.verify = self.ssl_verify
+
+
+class NautobotGraphQL:
+    def __init__(self, query_str, api=None, variables=None):
+        self.query_str = query_str
+        self.pynautobot = api.api
+        self.variables = variables
+
+    def query(self):
+        """Makes API call and checks response from GraphQL endpoint."""
+        # Make API call to query
+        graph_response = self.pynautobot.graphql.query(
+            query=self.query_str, variables=self.variables
+        )
+
+        return graph_response
